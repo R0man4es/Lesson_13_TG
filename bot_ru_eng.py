@@ -10,6 +10,8 @@ load_dotenv()
 # токен бота
 TOKEN = os.getenv('TG_TOKEN')
 
+lang = None
+
 # INLINE
 # форма inline клавиатуры
 inline_frame = [[InlineKeyboardButton("Русский", callback_data="rus")],
@@ -54,30 +56,55 @@ async def button(update: Update, _):
 
     # редактируем сообщение после нажатия
     if lang == "rus":
-        await query.edit_message_text(text=f"Вы нажали на кнопку: {query.data}")
-    else:
-        await query.edit_message_text(text=f"You pressed the button: {query.data}")
+        txt_ans = "Вы нажали на кнопку: "
+    elif lang == "eng":
+        txt_ans = "You pressed the button: "
+
+    await query.edit_message_text(text=txt_ans + query.data)
 
 
 # функция-обработчик текстовых сообщений
-async def text(update: Update, context):
+async def text(update: Update, _):
+    global lang
+
+    if lang == "rus":
+        txt_ans = "Текстовое сообщение получено!"
+    elif lang == "eng":
+        txt_ans = "We’ve received a message from you!"
+
+    await update.message.reply_text(txt_ans)
+
+
+# функция-обработчик сообщений с изображениями
+async def image(update: Update, _):
+
+    # получаем изображение из апдейта: 0 - низкое кач-во, 1 - среднее, 2 (-1) - высокое
+    file = await update.message.photo[-1].get_file()
+
+    # сохраняем изображение на диск
+    await file.download_to_drive("photos/image.jpg")
 
     global lang
 
     if lang == "rus":
-        await update.message.reply_text("Текстовое сообщение получено!")
-    else:
-        await update.message.reply_text("We’ve received a message from you!")
+        txt_ans = "Фотография сохранена"
+    elif lang == "eng":
+        txt_ans = "Photo saved!"
 
-
-# функция-обработчик сообщений с изображениями
-async def image(update: Update, context):
-    await update.message.reply_text("Мы получили от тебя фотографию!")
+    await update.message.reply_text(txt_ans)
 
 
 # функция-обработчик голосовых сообщений
-async def voice(update: Update, context):
-    await update.message.reply_text("Голосовое сообщение получено")
+async def voice(update: Update, _):
+    global lang
+
+    if lang == "rus":
+        txt_ans = "Голосовое сообщение получено!"
+    elif lang == "eng":
+        txt_ans = "We’ve received a voice message from you!"
+
+    # Отправка изображения с подписью
+    await update.message.reply_photo(photo=open("images/bot_image.jpg", 'rb'), caption=txt_ans)
 
 
 def main():
